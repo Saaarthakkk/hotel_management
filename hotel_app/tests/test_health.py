@@ -7,8 +7,7 @@ from config import TestingConfig
 
 
 def test_health_route():
-    app = create_app()
-    app.config.from_object(TestingConfig)
+    app = create_app('config.TestingConfig')
     with app.app_context():
         db.create_all()
     client = app.test_client()

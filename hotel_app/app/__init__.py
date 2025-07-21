@@ -11,10 +11,11 @@ csrf = CSRFProtect()
 migrate = Migrate()
 
 
-def create_app() -> Flask:
+def create_app(config_object: str | None = 'config.DevelopmentConfig') -> Flask:
     """Application factory."""
     app = Flask(__name__)
-    app.config.from_object('config.DevelopmentConfig')
+    if config_object:
+        app.config.from_object(config_object)
 
     db.init_app(app)
     migrate.init_app(app, db)

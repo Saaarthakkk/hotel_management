@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Housekeeping Tasks</h1>
+<ul>
+{% for t in tasks %}
+<li>Room {{ t.room.number }} due {{ t.due_date }} - {{ t.status }}</li>
+{% endfor %}
+</ul>
+{% endblock %}
+

@@ -37,6 +37,33 @@ class Booking(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     user = db.relationship('User', backref='bookings')
     room = db.relationship('Room', backref='bookings')
+    is_checked_in = db.Column(db.Boolean, default=False)
+
+
+class GuestProfile(db.Model):
+    """Stores guest preferences and history."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    preferences = db.Column(db.Text)
+    stay_history = db.Column(db.Text)
+    user = db.relationship('User', backref='profile', uselist=False)
+
+
+class HousekeepingTask(db.Model):
+    """Scheduled housekeeping tasks."""
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
+    due_date = db.Column(db.Date)
+    status = db.Column(db.String(20), default='pending')
+    room = db.relationship('Room', backref='hk_tasks')
+
+
+class RatePlan(db.Model):
+    """Rates for dynamic pricing."""
+    id = db.Column(db.Integer, primary_key=True)
+    room_type = db.Column(db.String(20), unique=True)
+    base_rate = db.Column(db.Float, nullable=False)
+    dynamic_rate = db.Column(db.Float)
 
 
 class CleaningLog(db.Model):

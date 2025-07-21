@@ -5,6 +5,9 @@ import os
 
 from flask import Blueprint, render_template
 
+from ..services.pricing_service import PricingService
+from ..utils import login_required
+
 from ..services.room_service import RoomService
 
 bp = Blueprint('rooms', __name__, url_prefix='/rooms')
@@ -16,6 +19,9 @@ logger.addHandler(handler)
 
 
 @bp.route('/')
+@login_required
 def list_rooms():
+    PricingService.update_dynamic_rates()
     rooms = RoomService.list_rooms()
-    return render_template('rooms.html', rooms=rooms)
+    rates = {room.type: PricingService.get_rate(room.type) for room in rooms}
+    return render_template('rooms.html', rooms=rooms, rates=rates)

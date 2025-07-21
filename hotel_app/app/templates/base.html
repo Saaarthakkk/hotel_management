@@ -2,5 +2,11 @@
 <title>Hotel</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <body>
+<nav>
+    <a href="{{ url_for('rooms.list_rooms') }}">Rooms</a> |
+    <a href="{{ url_for('bookings.reservation_board') }}">Bookings</a> |
+    <a href="{{ url_for('housekeeping.tasks') }}">Housekeeping</a> |
+    <a href="{{ url_for('auth.logout') }}">Logout</a>
+</nav>
 {% block content %}{% endblock %}
 </body>

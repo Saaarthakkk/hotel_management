@@ -9,6 +9,7 @@ from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
 
 from ..services.auth_service import AuthService
+from ..utils import login_required
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 logger = logging.getLogger(__name__)
@@ -34,3 +35,10 @@ def login():
             return redirect(url_for('rooms.list_rooms'))
         logger.info('Failed login for %s', form.username.data)
     return render_template('login.html', form=form)
+
+
+@bp.route('/logout')
+@login_required
+def logout():
+    session.clear()
+    return redirect(url_for('auth.login'))
