@@ -3,7 +3,14 @@
 <h1>Housekeeping Tasks</h1>
 <ul>
 {% for t in tasks %}
-<li>Room {{ t.room.number }} due {{ t.due_date }} - {{ t.status }}</li>
+<li>
+    Room {{ t.room.number }} due {{ t.due_date }} - {{ t.status }}
+    {% if t.status != 'done' %}
+    <form method="post" action="{{ url_for('housekeeping.complete_task', id=t.id) }}" style="display:inline;">
+        <input type="submit" value="Complete">
+    </form>
+    {% endif %}
+</li>
 {% endfor %}
 </ul>
 {% endblock %}

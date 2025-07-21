@@ -1,6 +1,13 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Reservation Board</h1>
+<form method="post" action="{{ url_for('bookings.search') }}">
+    {{ search_form.hidden_tag() }}
+    {{ search_form.guest_name.label }} {{ search_form.guest_name() }}
+    {{ search_form.start_date.label }} {{ search_form.start_date() }}
+    {{ search_form.end_date.label }} {{ search_form.end_date() }}
+    <input type="submit" value="Search">
+</form>
 <table>
     <tr><th>ID</th><th>Room</th><th>User</th><th>Check-In</th><th>Action</th></tr>
     {% for b in bookings %}

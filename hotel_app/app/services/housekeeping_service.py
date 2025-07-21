@@ -28,9 +28,12 @@ class HousekeepingService:
 
     @staticmethod
     def complete_task(task_id: int) -> None:
+        """Mark a housekeeping task as done."""
         task = db.session.get(HousekeepingTask, task_id)
         if task:
             task.status = 'done'
+            if hasattr(task, 'completed'):
+                task.completed = True  # added in later migration
             db.session.commit()
 
     @staticmethod

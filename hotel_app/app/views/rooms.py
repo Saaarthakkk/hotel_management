@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, redirect, url_for
 
 from ..services.pricing_service import PricingService
 from ..utils import login_required, roles_required, setup_logger
-from ..forms import RoomForm
+from ..forms import RoomForm, EditRoomForm
 
 from ..models import db, Room
 from ..services.room_service import RoomService
@@ -35,4 +35,28 @@ def new_room():
         RoomService.create_room(form.number.data, form.type.data)
         return redirect(url_for('rooms.list_rooms'))
     return render_template('new_room.html', form=form)
+
+
+@bp.route('/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+@roles_required('admin', 'manager')
+def edit_room(id: int):
+    """Edit an existing room."""
+    room = db.session.get(Room, id)
+    if not room:
+        return redirect(url_for('rooms.list_rooms'))
+    form = EditRoomForm(obj=room)
+    if form.validate_on_submit():
+        RoomService.update_room(id, form.number.data, form.status.data)
+        return redirect(url_for('rooms.list_rooms'))
+    return render_template('edit_room.html', form=form, room=room)
+
+
+@bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
+@roles_required('admin', 'manager')
+def delete_room(id: int):
+    """Delete room and redirect."""
+    RoomService.delete_room(id)
+    return redirect(url_for('rooms.list_rooms'))
 

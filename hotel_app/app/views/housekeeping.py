@@ -19,3 +19,12 @@ def tasks() -> str:
     tasks = db.session.query(HousekeepingTask).all()
     return render_template('tasks.html', tasks=tasks)
 
+
+@bp.route('/tasks/<int:id>/complete', methods=['POST'])
+@login_required
+@role_required('housekeeping')
+def complete_task(id: int):
+    """Mark a task as completed."""
+    HousekeepingService.complete_task(id)
+    return redirect(url_for('housekeeping.tasks'))
+

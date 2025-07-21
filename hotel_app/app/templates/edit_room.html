@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<form method="post">
+    {{ form.hidden_tag() }}
+    {{ form.number.label }} {{ form.number() }}<br>
+    {{ form.status.label }} {{ form.status() }}<br>
+    <input type="submit" value="Update">
+</form>
+<form method="post" action="{{ url_for('rooms.delete_room', id=room.id) }}">
+    {{ form.hidden_tag() }}
+    <input type="submit" value="Delete">
+</form>
+{% endblock %}
+
