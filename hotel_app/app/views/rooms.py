@@ -8,6 +8,7 @@ from ..services.pricing_service import PricingService
 from ..utils import login_required, roles_required, setup_logger
 from ..forms import RoomForm
 
+from ..models import db, Room
 from ..services.room_service import RoomService
 
 bp = Blueprint('rooms', __name__, url_prefix='/rooms')
@@ -16,9 +17,10 @@ logger = setup_logger(__name__, 'rooms.log')
 
 @bp.route('/')
 @login_required
-def list_rooms():
+def list_rooms() -> str:
+    """List rooms with current dynamic rates."""
     PricingService.update_dynamic_rates()
-    rooms = RoomService.list_rooms()
+    rooms = db.session.query(Room).all()
     rates = {room.type: PricingService.get_rate(room.type) for room in rooms}
     return render_template('rooms.html', rooms=rooms, rates=rates)
 
@@ -33,3 +35,4 @@ def new_room():
         RoomService.create_room(form.number.data, form.type.data)
         return redirect(url_for('rooms.list_rooms'))
     return render_template('new_room.html', form=form)
+

@@ -7,6 +7,7 @@ from flask import Blueprint, render_template, redirect, url_for
 from ..services.booking_service import BookingService
 from ..utils import login_required, role_required, setup_logger
 from ..forms import BookingForm
+from ..models import db, Booking
 
 bp = Blueprint('bookings', __name__, url_prefix='/bookings')
 logger = setup_logger(__name__, 'bookings.log')
@@ -14,9 +15,9 @@ logger = setup_logger(__name__, 'bookings.log')
 
 @bp.route('/board')
 @login_required
-def reservation_board():
+def reservation_board() -> str:
     """Display all bookings."""
-    bookings = BookingService.list_bookings()
+    bookings = db.session.query(Booking).all()
     return render_template('board.html', bookings=bookings)
 
 
@@ -46,3 +47,4 @@ def check_in(bid: int):
 def check_out(bid: int):
     BookingService.check_out(bid)
     return redirect(url_for('bookings.reservation_board'))
+
