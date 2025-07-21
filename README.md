@@ -40,3 +40,4 @@ curl http://localhost:5000/health
 
 Pull requests are welcome. Please open an issue first to discuss changes.
 
+[![Lint](https://github.com/<ORG_OR_USER>/<REPO>/actions/workflows/lint.yml/badge.svg)](https://github.com/<ORG_OR_USER>/<REPO>/actions/workflows/lint.yml)

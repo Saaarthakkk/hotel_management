@@ -1,0 +1,14 @@
+# PLAN: Central configuration for formatters and linters
+[project]
+name = "hotel_app"
+version = "0.1.0"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "B", "I"]
