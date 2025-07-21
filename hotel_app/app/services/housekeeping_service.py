@@ -28,7 +28,7 @@ class HousekeepingService:
 
     @staticmethod
     def complete_task(task_id: int) -> None:
-        task = HousekeepingTask.query.get(task_id)
+        task = db.session.get(HousekeepingTask, task_id)
         if task:
             task.status = 'done'
             db.session.commit()

@@ -21,14 +21,20 @@ class BookingService:
 
     @staticmethod
     def check_in(booking_id: int) -> None:
-        booking = Booking.query.get(booking_id)
+        """Mark booking as checked in and update room status."""
+        booking = db.session.get(Booking, booking_id)
         if booking:
             booking.is_checked_in = True
+            if booking.room:
+                booking.room.status = 'occupied'
             db.session.commit()
 
     @staticmethod
     def check_out(booking_id: int) -> None:
-        booking = Booking.query.get(booking_id)
+        """Mark booking as checked out and free the room."""
+        booking = db.session.get(Booking, booking_id)
         if booking:
             booking.is_checked_in = False
+            if booking.room:
+                booking.room.status = 'vacant'
             db.session.commit()

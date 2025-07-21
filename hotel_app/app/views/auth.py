@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import os
 
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from flask_wtf import FlaskForm
@@ -9,14 +8,10 @@ from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
 
 from ..services.auth_service import AuthService
-from ..utils import login_required
+from ..utils import login_required, setup_logger
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
-logger = logging.getLogger(__name__)
-log_path = os.path.join(os.path.dirname(__file__), '..', '..', 'logs', 'auth.log')
-os.makedirs(os.path.dirname(log_path), exist_ok=True)
-handler = logging.FileHandler(log_path)
-logger.addHandler(handler)
+logger = setup_logger(__name__, 'auth.log')
 
 
 class LoginForm(FlaskForm):

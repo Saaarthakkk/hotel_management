@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 import logging
-import os
 
 from flask import Blueprint, render_template, redirect, url_for
 
 from ..services.booking_service import BookingService
-from ..utils import login_required, role_required
+from ..utils import login_required, role_required, setup_logger
+from ..forms import BookingForm
 
 bp = Blueprint('bookings', __name__, url_prefix='/bookings')
-logger = logging.getLogger(__name__)
-log_path = os.path.join(os.path.dirname(__file__), '..', '..', 'logs', 'bookings.log')
-os.makedirs(os.path.dirname(log_path), exist_ok=True)
-handler = logging.FileHandler(log_path)
-logger.addHandler(handler)
+logger = setup_logger(__name__, 'bookings.log')
 
 
 @bp.route('/board')
@@ -22,6 +18,20 @@ def reservation_board():
     """Display all bookings."""
     bookings = BookingService.list_bookings()
     return render_template('board.html', bookings=bookings)
+
+
+@bp.route('/new', methods=['GET', 'POST'])
+@login_required
+@role_required('receptionist')
+def new_booking():
+    """Create a booking."""
+    form = BookingForm()
+    if form.validate_on_submit():
+        BookingService.create_booking(
+            form.user_id.data, form.room_id.data, form.start_date.data, form.end_date.data
+        )
+        return redirect(url_for('bookings.reservation_board'))
+    return render_template('new_booking.html', form=form)
 
 
 @bp.route('/checkin/<int:bid>')

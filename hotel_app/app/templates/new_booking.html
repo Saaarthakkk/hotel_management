@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<form method="post">
+    {{ form.hidden_tag() }}
+    {{ form.user_id.label }} {{ form.user_id() }}<br>
+    {{ form.room_id.label }} {{ form.room_id() }}<br>
+    {{ form.start_date.label }} {{ form.start_date() }}<br>
+    {{ form.end_date.label }} {{ form.end_date() }}<br>
+    <input type="submit" value="Create">
+</form>
+{% endblock %}
