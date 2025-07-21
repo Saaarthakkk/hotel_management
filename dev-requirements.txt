@@ -1,0 +1,6 @@
+# PLAN: Development dependencies for linting and formatting
+pre-commit
+black==24.4.2
+ruff==0.4.1
+isort==5.13.2
+detect-secrets==1.4.0
