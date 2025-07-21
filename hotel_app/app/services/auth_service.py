@@ -6,7 +6,7 @@ from ..models import User, db
 
 
 class AuthService:
-    """Service for user authentication management."""
+    """Service for CRUD operations on users."""
 
     @staticmethod
     def create_user(username: str, password: str, role: str) -> User:
@@ -15,6 +15,18 @@ class AuthService:
         db.session.add(user)
         db.session.commit()
         return user
+
+    @staticmethod
+    def update_password(user: User, password: str) -> None:
+        user.set_password(password)
+        db.session.commit()
+
+    @staticmethod
+    def delete_user(user_id: int) -> None:
+        user = db.session.get(User, user_id)
+        if user:
+            db.session.delete(user)
+            db.session.commit()
 
     @staticmethod
     def authenticate(username: str, password: str) -> Optional[User]:

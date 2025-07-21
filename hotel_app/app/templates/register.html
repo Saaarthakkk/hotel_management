@@ -5,8 +5,7 @@
     {{ form.hidden_tag() }}
     {{ form.username.label }} {{ form.username() }}<br>
     {{ form.password.label }} {{ form.password() }}<br>
-    {{ form.remember.label }} {{ form.remember() }}<br>
-    <input type="submit" value="Login">
+    {{ form.role.label }} {{ form.role() }}<br>
+    <input type="submit" value="Create User">
 </form>
-<a href="{{ url_for('auth.register') }}">Register</a>
 {% endblock %}

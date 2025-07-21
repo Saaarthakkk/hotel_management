@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+import bcrypt
 
 
 db = SQLAlchemy()
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     """User of the hotel management system."""
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -16,10 +17,10 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)
 
     def set_password(self, password: str) -> None:
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     def check_password(self, password: str) -> bool:
-        return check_password_hash(self.password_hash, password)
+        return bcrypt.checkpw(password.encode(), self.password_hash.encode())
 
 
 class Room(db.Model):
@@ -35,9 +36,9 @@ class Booking(db.Model):
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.String(20), default='reserved', nullable=False)
     user = db.relationship('User', backref='bookings')
     room = db.relationship('Room', backref='bookings')
-    is_checked_in = db.Column(db.Boolean, default=False)
 
 
 class GuestProfile(db.Model):

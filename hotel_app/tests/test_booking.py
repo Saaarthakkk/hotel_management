@@ -19,8 +19,8 @@ def test_check_in_and_out():
         room = RoomService.create_room('101', 'std')
         booking = BookingService.create_booking(user.id, room.id, date.today(), date.today())
         BookingService.check_in(booking.id)
-        assert BookingService.list_bookings()[0].is_checked_in is True
+        assert BookingService.list_bookings()[0].status == 'checked-in'
         assert RoomService.list_rooms()[0].status == 'occupied'
         BookingService.check_out(booking.id)
-        assert BookingService.list_bookings()[0].is_checked_in is False
+        assert BookingService.list_bookings()[0].status == 'cancelled'
         assert RoomService.list_rooms()[0].status == 'vacant'

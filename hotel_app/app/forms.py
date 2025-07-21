@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, DateField
+from wtforms import StringField, DateField, PasswordField, BooleanField
 from wtforms.validators import DataRequired
 
 
@@ -20,6 +20,22 @@ class BookingForm(FlaskForm):
     room_id = StringField('Room ID', validators=[DataRequired()])
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
+
+
+class RegistrationForm(FlaskForm):
+    """Admin user registration form."""
+
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    role = StringField('Role', validators=[DataRequired()])
+
+
+class LoginForm(FlaskForm):
+    """User login form."""
+
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    remember = BooleanField('Remember me')
 
 
 class EditRoomForm(FlaskForm):

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 
 from ..services.booking_service import BookingService
 from ..utils import login_required, role_required, setup_logger
@@ -12,6 +12,16 @@ from ..models import db, Booking
 
 bp = Blueprint('bookings', __name__, url_prefix='/bookings')
 logger = setup_logger(__name__, 'bookings.log')
+
+
+@bp.record_once
+def register_errors(state) -> None:
+    @state.app.errorhandler(ValueError)
+    def handle_conflict(err: ValueError):
+        if request.blueprint == 'api_v1':
+            return jsonify(error=str(err)), 409
+        flash(str(err))
+        return redirect(request.url)
 
 
 @bp.route('/board')
@@ -30,10 +40,16 @@ def new_booking():
     """Create a booking."""
     form = BookingForm()
     if form.validate_on_submit():
-        BookingService.create_booking(
-            form.user_id.data, form.room_id.data, form.start_date.data, form.end_date.data
-        )
-        return redirect(url_for('bookings.reservation_board'))
+        try:
+            BookingService.create_booking(
+                form.user_id.data,
+                form.room_id.data,
+                form.start_date.data,
+                form.end_date.data,
+            )
+            return redirect(url_for('bookings.reservation_board'))
+        except ValueError as exc:
+            form.start_date.errors.append(str(exc))
     return render_template('new_booking.html', form=form)
 
 
