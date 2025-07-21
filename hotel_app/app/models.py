@@ -1,3 +1,4 @@
+# PLAN: extend HousekeepingTask fields and redefine CleaningLog for scheduler
 from __future__ import annotations
 
 from datetime import datetime
@@ -54,9 +55,13 @@ class HousekeepingTask(db.Model):
     """Scheduled housekeeping tasks."""
     id = db.Column(db.Integer, primary_key=True)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
+    assigned_to = db.Column(db.Integer, db.ForeignKey('user.id'))
+    priority = db.Column(db.Integer, default=1, nullable=False)
     due_date = db.Column(db.Date)
     status = db.Column(db.String(20), default='pending')
+    completed_at = db.Column(db.DateTime)
     room = db.relationship('Room', backref='hk_tasks')
+    assignee = db.relationship('User', backref='hk_tasks', foreign_keys=[assigned_to])
 
 
 class RatePlan(db.Model):
@@ -69,7 +74,7 @@ class RatePlan(db.Model):
 
 class CleaningLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
-    cleaned_at = db.Column(db.DateTime, default=datetime.utcnow)
-    notes = db.Column(db.String(200))
-    room = db.relationship('Room', backref='clean_logs')
+    task_id = db.Column(db.Integer, db.ForeignKey('housekeeping_task.id'))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    duration = db.Column(db.Integer)
+    task = db.relationship('HousekeepingTask', backref='logs')

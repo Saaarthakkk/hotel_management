@@ -1,17 +1,44 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Housekeeping Tasks</h1>
-<ul>
-{% for t in tasks %}
-<li>
-    Room {{ t.room.number }} due {{ t.due_date }} - {{ t.status }}
-    {% if t.status != 'done' %}
-    <form method="post" action="{{ url_for('housekeeping.complete_task', id=t.id) }}" style="display:inline;">
+{% include '_flash.html' %}
+<h1>My Tasks</h1>
+<table>
+<tr><th>Room</th><th>Due</th><th>Status</th><th></th></tr>
+{% for t in my_tasks %}
+<tr>
+  <td>{{ t.room.number }}</td>
+  <td>{{ t.due_date }}</td>
+  <td>{{ t.status }}</td>
+  <td>
+  {% if not t.completed_at %}
+    <form method="post" action="{{ url_for('housekeeping.complete_task', id=t.id) }}">
         <input type="submit" value="Complete">
     </form>
-    {% endif %}
-</li>
+  {% endif %}
+  </td>
+</tr>
 {% endfor %}
-</ul>
+</table>
+
+<h2>Unassigned Tasks</h2>
+<table>
+<tr><th>Room</th><th>Due</th><th>Priority</th><th>Assign</th></tr>
+{% for t in unassigned %}
+<tr>
+  <td>{{ t.room.number }}</td>
+  <td>{{ t.due_date }}</td>
+  <td>{{ t.priority }}</td>
+  <td>
+  {% if role == 'manager' %}
+    {% for u in users %}
+    <form method="post" action="{{ url_for('housekeeping.assign_task', id=t.id, user_id=u.id) }}" style="display:inline;">
+        <input type="submit" value="Assign {{ u.username }}">
+    </form>
+    {% endfor %}
+  {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</table>
 {% endblock %}
 
