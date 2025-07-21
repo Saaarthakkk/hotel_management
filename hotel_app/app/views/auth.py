@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session, Response
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired
@@ -20,7 +20,8 @@ class LoginForm(FlaskForm):
 
 
 @bp.route('/login', methods=['GET', 'POST'])
-def login():
+def login() -> Response:
+    """Render the login form and authenticate the user."""
     form = LoginForm()
     if form.validate_on_submit():
         user = AuthService.authenticate(form.username.data, form.password.data)
@@ -34,6 +35,7 @@ def login():
 
 @bp.route('/logout')
 @login_required
-def logout():
+def logout() -> Response:
+    """Log out the current user and redirect to login."""
     session.clear()
     return redirect(url_for('auth.login'))

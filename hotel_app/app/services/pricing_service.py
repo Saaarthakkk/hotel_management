@@ -13,8 +13,8 @@ class PricingService:
     @staticmethod
     def update_dynamic_rates() -> None:
         total_rooms = Room.query.count()
-        booked_rooms = Room.query.filter_by(status='booked').count()
-        occupancy = booked_rooms / total_rooms if total_rooms else 0
+        occupied_rooms = Room.query.filter_by(status='occupied').count()
+        occupancy = occupied_rooms / total_rooms if total_rooms else 0
 
         for plan in RatePlan.query.all():
             plan.dynamic_rate = plan.base_rate * (1 + occupancy)
