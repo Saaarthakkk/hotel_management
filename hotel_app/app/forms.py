@@ -1,3 +1,4 @@
+# PLAN: provide creation, edit and search forms for rooms and bookings.
 from __future__ import annotations
 
 from flask_wtf import FlaskForm

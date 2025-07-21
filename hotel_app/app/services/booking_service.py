@@ -1,3 +1,4 @@
+# PLAN: manage booking lifecycle including update, delete, and search helpers.
 from __future__ import annotations
 
 from datetime import date

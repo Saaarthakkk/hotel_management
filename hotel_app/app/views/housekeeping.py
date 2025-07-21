@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, render_template
+# PLAN: list tasks and mark them complete via POST action.
+from flask import Blueprint, render_template, redirect, url_for
 
 from ..services.housekeeping_service import HousekeepingService
 from ..utils import login_required, role_required, setup_logger

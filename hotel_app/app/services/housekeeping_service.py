@@ -1,3 +1,4 @@
+# PLAN: housekeeping task scheduling and completion helpers.
 from __future__ import annotations
 
 from typing import List

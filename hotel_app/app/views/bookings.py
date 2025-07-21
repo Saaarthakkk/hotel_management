@@ -1,3 +1,4 @@
+# PLAN: booking routes including CRUD and search features.
 from __future__ import annotations
 
 import logging

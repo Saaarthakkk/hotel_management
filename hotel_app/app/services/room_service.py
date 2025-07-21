@@ -1,3 +1,4 @@
+# PLAN: room CRUD helpers for views; update and delete operations.
 from __future__ import annotations
 
 from typing import List
