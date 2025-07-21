@@ -1,4 +1,4 @@
-# PLAN: extend HousekeepingTask fields and redefine CleaningLog for scheduler
+# PLAN: add rate strategy polymorphism and overbooking plan models
 from __future__ import annotations
 
 from datetime import datetime
@@ -78,3 +78,46 @@ class CleaningLog(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     duration = db.Column(db.Integer)
     task = db.relationship('HousekeepingTask', backref='logs')
+
+
+class RateStrategy(db.Model):
+    """Polymorphic rate strategy base. HL: inheritance/polymorphism."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey('rate_plan.id'))
+    type = db.Column(db.String(20))
+    active = db.Column(db.Boolean, default=True)
+    plan = db.relationship('RatePlan', backref='strategies')
+    __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "base"}
+
+
+class BARRate(RateStrategy):
+    __tablename__ = 'bar_rate'
+    id = db.Column(db.Integer, db.ForeignKey('rate_strategy.id'), primary_key=True)
+    discount = db.Column(db.Float, default=0.0)
+    __mapper_args__ = {"polymorphic_identity": "bar"}
+
+
+class PackageRate(RateStrategy):
+    __tablename__ = 'package_rate'
+    id = db.Column(db.Integer, db.ForeignKey('rate_strategy.id'), primary_key=True)
+    package = db.Column(db.String(50))
+    discount = db.Column(db.Float, default=0.0)
+    __mapper_args__ = {"polymorphic_identity": "package"}
+
+
+class CorporateRate(RateStrategy):
+    __tablename__ = 'corporate_rate'
+    id = db.Column(db.Integer, db.ForeignKey('rate_strategy.id'), primary_key=True)
+    corp_code = db.Column(db.String(20))
+    discount = db.Column(db.Float, default=0.0)
+    __mapper_args__ = {"polymorphic_identity": "corporate"}
+
+
+class OverbookingPlan(db.Model):
+    """Stores computed oversell limits."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
+    limit = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

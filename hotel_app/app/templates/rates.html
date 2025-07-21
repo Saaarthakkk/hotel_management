@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Rate Strategies</h1>
+<table>
+<tr><th>Plan</th><th>Type</th><th>Discount</th><th>Active</th><th></th></tr>
+{% for p in plans %}
+  {% for s in p.strategies %}
+  <tr>
+    <td>{{ p.room_type }}</td>
+    <td>{{ s.type }}</td>
+    <td>{{ getattr(s,'discount',0) }}</td>
+    <td>{{ s.active }}</td>
+    <td><a href="{{ url_for('rates.toggle_rate', rid=s.id) }}">Toggle</a></td>
+  </tr>
+  {% endfor %}
+{% endfor %}
+</table>
+{% endblock %}

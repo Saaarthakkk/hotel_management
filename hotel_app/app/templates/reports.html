@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Manager Dashboard</h1>
+<canvas id="occ"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch('{{ url_for('reports.overview_json') }}')
+  .then(r=>r.json()).then(d=>{
+    const ctx=document.getElementById('occ');
+    new Chart(ctx,{type:'line',data:{labels:d.metrics.map(m=>m.date),datasets:[{label:'Occ%',data:d.metrics.map(m=>m.occupancy)}]}});
+  });
+</script>
+<a href="{{ url_for('reports.overview_json') }}?fmt=csv">Export CSV</a>
+{% endblock %}

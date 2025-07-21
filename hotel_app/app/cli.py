@@ -7,6 +7,7 @@ from datetime import date
 
 from .services.housekeeping_scheduler import HousekeepingScheduler
 from .services.housekeeping_service import HousekeepingService
+from .services.overbooking_service import OverbookingService
 from .utils import setup_logger
 
 logger = setup_logger(__name__, 'cli.log')
@@ -26,3 +27,15 @@ def init_cli(app) -> None:
                 HousekeepingService.assign_task(tid, uid)
         logger.info('schedule %s', schedule)
         click.echo(schedule)
+
+    @app.cli.group()
+    def revenue() -> None:
+        """Revenue related commands."""
+
+    @revenue.command('oversell')
+    @click.argument('target')
+    def oversell(target: str) -> None:
+        target_date = date.fromisoformat(target)
+        limit = OverbookingService.compute_limit(target_date)
+        OverbookingService.record_plan(target_date, limit)
+        click.echo(limit)
