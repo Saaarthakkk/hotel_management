@@ -23,12 +23,21 @@ def create_app(config_object: str | None = 'config.DevelopmentConfig') -> Flask:
     migrate.init_app(app, db)
     csrf.init_app(app)
 
-    from .views import auth_bp, rooms_bp, bookings_bp, housekeeping_bp
+    from .views import (
+        auth_bp,
+        rooms_bp,
+        bookings_bp,
+        housekeeping_bp,
+        reports_bp,
+        rates_bp,
+    )
     from .api import api_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(rooms_bp)
     app.register_blueprint(bookings_bp)
     app.register_blueprint(housekeeping_bp)
+    app.register_blueprint(reports_bp)
+    app.register_blueprint(rates_bp)
     app.register_blueprint(api_bp)
 
     @app.route('/health')

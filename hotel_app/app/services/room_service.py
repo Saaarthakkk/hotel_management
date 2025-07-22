@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 from typing import List
+from datetime import date
 
-from ..models import Room, db
+from ..models import Room, Booking, db
 
 
 class RoomService:
@@ -40,3 +41,14 @@ class RoomService:
         if room:
             db.session.delete(room)
             db.session.commit()
+
+    @staticmethod
+    def available_rooms(start: date, end: date) -> List[Room]:
+        """Return rooms without overlapping bookings."""
+        sub = (
+            db.session.query(Booking.room_id)
+            .filter(Booking.status != 'cancelled')
+            .filter(Booking.end_date >= start, Booking.start_date <= end)
+            .subquery()
+        )
+        return Room.query.filter(~Room.id.in_(sub)).all()

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<form method="post">
+<form method="post" id="bform">
     {{ form.hidden_tag() }}
     {{ form.user_id.label }} {{ form.user_id() }}<br>
     {{ form.room_id.label }} {{ form.room_id() }}<br>
@@ -8,4 +8,19 @@
     {{ form.end_date.label }} {{ form.end_date() }}<br>
     <input type="submit" value="Create">
 </form>
+<script>
+function loadRooms(){
+  const s=document.getElementById('start_date');
+  const e=document.getElementById('end_date');
+  if(!s.value||!e.value) return;
+  fetch(`/bookings/available?start=${s.value}&end=${e.value}`)
+    .then(r=>r.json()).then(data=>{
+      const sel=document.getElementById('room_id');
+      sel.innerHTML='';
+      data.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.text=r.number;sel.add(o);});
+    });
+}
+document.getElementById('start_date').addEventListener('change',loadRooms);
+document.getElementById('end_date').addEventListener('change',loadRooms);
+</script>
 {% endblock %}

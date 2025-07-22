@@ -1,25 +1,35 @@
+# PLAN: add rate strategy polymorphism and overbooking plan models
 from __future__ import annotations
 
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+import bcrypt
 
 
 db = SQLAlchemy()
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     """User of the hotel management system."""
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), nullable=False)
+    active = db.Column(db.Boolean, default=False)
 
     def set_password(self, password: str) -> None:
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     def check_password(self, password: str) -> bool:
-        return check_password_hash(self.password_hash, password)
+        return bcrypt.checkpw(password.encode(), self.password_hash.encode())
+
+    # Flask-Login expects this property
+    @property
+    def is_active(self) -> bool:  # type: ignore[override]
+        return self.active
 
 
 class Room(db.Model):
@@ -35,9 +45,10 @@ class Booking(db.Model):
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.String(20), default='reserved', nullable=False)
+    cancelled_at = db.Column(db.DateTime)
     user = db.relationship('User', backref='bookings')
     room = db.relationship('Room', backref='bookings')
-    is_checked_in = db.Column(db.Boolean, default=False)
 
 
 class GuestProfile(db.Model):
@@ -53,9 +64,15 @@ class HousekeepingTask(db.Model):
     """Scheduled housekeeping tasks."""
     id = db.Column(db.Integer, primary_key=True)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
+    assigned_to = db.Column(db.Integer, db.ForeignKey('user.id'))
+    priority = db.Column(db.Integer, default=1, nullable=False)
     due_date = db.Column(db.Date)
     status = db.Column(db.String(20), default='pending')
+    completed_at = db.Column(db.DateTime)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
+    recurrence_days = db.Column(db.Integer)
     room = db.relationship('Room', backref='hk_tasks')
+    assignee = db.relationship('User', backref='hk_tasks', foreign_keys=[assigned_to])
 
 
 class RatePlan(db.Model):
@@ -68,7 +85,62 @@ class RatePlan(db.Model):
 
 class CleaningLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
-    cleaned_at = db.Column(db.DateTime, default=datetime.utcnow)
-    notes = db.Column(db.String(200))
-    room = db.relationship('Room', backref='clean_logs')
+    task_id = db.Column(db.Integer, db.ForeignKey('housekeeping_task.id'))
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    duration = db.Column(db.Integer)
+    task = db.relationship('HousekeepingTask', backref='logs')
+
+
+class RateStrategy(db.Model):
+    """Polymorphic rate strategy base. HL: inheritance/polymorphism."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey('rate_plan.id'))
+    type = db.Column(db.String(20))
+    active = db.Column(db.Boolean, default=True)
+    plan = db.relationship('RatePlan', backref='strategies')
+    __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "base"}
+
+
+class BARRate(RateStrategy):
+    __tablename__ = 'bar_rate'
+    id = db.Column(db.Integer, db.ForeignKey('rate_strategy.id'), primary_key=True)
+    discount = db.Column(db.Float, default=0.0)
+    __mapper_args__ = {"polymorphic_identity": "bar"}
+
+
+class PackageRate(RateStrategy):
+    __tablename__ = 'package_rate'
+    id = db.Column(db.Integer, db.ForeignKey('rate_strategy.id'), primary_key=True)
+    package = db.Column(db.String(50))
+    discount = db.Column(db.Float, default=0.0)
+    __mapper_args__ = {"polymorphic_identity": "package"}
+
+
+class CorporateRate(RateStrategy):
+    __tablename__ = 'corporate_rate'
+    id = db.Column(db.Integer, db.ForeignKey('rate_strategy.id'), primary_key=True)
+    corp_code = db.Column(db.String(20))
+    discount = db.Column(db.Float, default=0.0)
+    __mapper_args__ = {"polymorphic_identity": "corporate"}
+
+
+class OverbookingPlan(db.Model):
+    """Stores computed oversell limits."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, unique=True, nullable=False)
+    limit = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class BookingAudit(db.Model):
+    """Record of booking actions for audit trail."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
+    action = db.Column(db.String(50))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    details = db.Column(db.String(200))
+    booking = db.relationship('Booking', backref='audits')

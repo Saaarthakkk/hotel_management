@@ -1,9 +1,10 @@
 # PLAN: manage booking lifecycle including update, delete, and search helpers.
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 
-from ..models import Booking, User, db
+from ..models import Booking, BookingAudit, User, db
+from .housekeeping_service import HousekeepingService
 
 
 class BookingService:
@@ -11,9 +12,18 @@ class BookingService:
 
     @staticmethod
     def create_booking(user_id: int, room_id: int, start: date, end: date) -> Booking:
+        overlap = (
+            db.session.query(Booking)
+            .filter(Booking.room_id == room_id, Booking.status != 'cancelled')
+            .filter(Booking.end_date >= start, Booking.start_date <= end)
+            .first()
+        )
+        if overlap:
+            raise ValueError('Room already booked for given dates')
         booking = Booking(user_id=user_id, room_id=room_id, start_date=start, end_date=end)
         db.session.add(booking)
         db.session.commit()
+        BookingService._record_audit(booking.id, 'create')
         return booking
 
     @staticmethod
@@ -24,21 +34,29 @@ class BookingService:
     def check_in(booking_id: int) -> None:
         """Mark booking as checked in and update room status."""
         booking = db.session.get(Booking, booking_id)
-        if booking:
-            booking.is_checked_in = True
+        if booking and booking.status == 'reserved':
+            booking.status = 'checked-in'
             if booking.room:
                 booking.room.status = 'occupied'
             db.session.commit()
+            BookingService._record_audit(booking.id, 'check_in')
 
     @staticmethod
     def check_out(booking_id: int) -> None:
         """Mark booking as checked out and free the room."""
         booking = db.session.get(Booking, booking_id)
-        if booking:
-            booking.is_checked_in = False
+        if booking and booking.status == 'checked-in':
+            booking.status = 'cancelled'
+            booking.cancelled_at = datetime.utcnow()
             if booking.room:
                 booking.room.status = 'vacant'
+                HousekeepingService.schedule_task(
+                    booking.room.id,
+                    booking.end_date,
+                    booking_id=booking.id,
+                )
             db.session.commit()
+            BookingService._record_audit(booking.id, 'check_out')
 
     @staticmethod
     def update_booking(
@@ -46,6 +64,7 @@ class BookingService:
         guest_name: str | None = None,
         check_in: date | None = None,
         check_out: date | None = None,
+        status: str | None = None,
     ) -> Booking | None:
         """Update booking details and optionally guest name."""
         booking = db.session.get(Booking, booking_id)
@@ -57,7 +76,10 @@ class BookingService:
             booking.start_date = check_in
         if check_out is not None:
             booking.end_date = check_out
+        if status is not None:
+            booking.status = status
         db.session.commit()
+        BookingService._record_audit(booking.id, 'update')
         return booking
 
     @staticmethod
@@ -67,6 +89,7 @@ class BookingService:
         if booking:
             db.session.delete(booking)
             db.session.commit()
+            BookingService._record_audit(booking_id, 'delete')
 
     @staticmethod
     def search_bookings(
@@ -83,3 +106,20 @@ class BookingService:
         if end:
             q = q.filter(Booking.end_date <= end)
         return q.all()
+
+    @staticmethod
+    def cancel_booking(booking_id: int) -> None:
+        booking = db.session.get(Booking, booking_id)
+        if booking and booking.status != 'cancelled':
+            booking.status = 'cancelled'
+            booking.cancelled_at = datetime.utcnow()
+            if booking.room:
+                booking.room.status = 'vacant'
+            db.session.commit()
+            BookingService._record_audit(booking.id, 'cancel')
+
+    @staticmethod
+    def _record_audit(bid: int, action: str, details: str | None = None) -> None:
+        audit = BookingAudit(booking_id=bid, action=action, details=details or '')
+        db.session.add(audit)
+        db.session.commit()

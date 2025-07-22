@@ -9,17 +9,20 @@
     <input type="submit" value="Search">
 </form>
 <table>
-    <tr><th>ID</th><th>Room</th><th>User</th><th>Check-In</th><th>Action</th></tr>
+    <tr><th>ID</th><th>Room</th><th>User</th><th>Status</th><th>Action</th></tr>
     {% for b in bookings %}
     <tr>
         <td>{{ b.id }}</td>
         <td>{{ b.room.number }}</td>
         <td>{{ b.user.username }}</td>
-        <td>{{ 'Yes' if b.is_checked_in else 'No' }}</td>
+        <td>{{ b.status }}</td>
         <td>
-            {% if not b.is_checked_in %}
+            {% if b.status == 'reserved' %}
             <a href="{{ url_for('bookings.check_in', bid=b.id) }}">Check In</a>
-            {% else %}
+            <form method="post" action="{{ url_for('bookings.cancel_booking', bid=b.id) }}" style="display:inline;">
+              <input type="submit" value="Cancel">
+            </form>
+            {% elif b.status == 'checked-in' %}
             <a href="{{ url_for('bookings.check_out', bid=b.id) }}">Check Out</a>
             {% endif %}
         </td>

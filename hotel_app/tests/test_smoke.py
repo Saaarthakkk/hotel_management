@@ -7,8 +7,7 @@ from app import create_app, db
 
 
 def test_basic_routes():
-    app = create_app('config.DevelopmentConfig')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    app = create_app('config.TestingConfig')
     with app.app_context():
         db.create_all()
     client = app.test_client()

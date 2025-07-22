@@ -17,7 +17,12 @@ class PricingService:
         occupancy = occupied_rooms / total_rooms if total_rooms else 0
 
         for plan in RatePlan.query.all():
-            plan.dynamic_rate = plan.base_rate * (1 + occupancy)
+            discount = 1.0
+            for strat in plan.strategies:
+                if strat.active:
+                    discount *= 1 - getattr(strat, 'discount', 0)
+            # HL: hashing by strategy lookup
+            plan.dynamic_rate = plan.base_rate * (1 + occupancy) * discount
         db.session.commit()
 
     @staticmethod

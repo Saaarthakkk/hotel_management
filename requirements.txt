@@ -2,3 +2,10 @@ Flask
 Flask-SQLAlchemy
 Flask-WTF
 Flask-Migrate
+Flask-Login
+bcrypt==4.1.2
+pandas
+numpy
+weasyprint
+prophet
+email_validator
