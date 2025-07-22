@@ -5,8 +5,11 @@
     {{ form.hidden_tag() }}
     {{ form.username.label }} {{ form.username() }}<br>
     {{ form.email.label }} {{ form.email() }}<br>
-    {{ form.password.label }} {{ form.password() }}<br>
     {{ form.role.label }} {{ form.role() }}<br>
-    <input type="submit" value="Create User">
+    {{ form.password.label }} {{ form.password() }}<br>
+    {{ form.confirm.label }} {{ form.confirm() }}<br>
+    {{ form.agree.label }} {{ form.agree() }}<br>
+    <input type="submit" value="Submit Application">
 </form>
+<a href="{{ url_for('auth.login') }}">Login</a>
 {% endblock %}

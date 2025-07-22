@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from flask import Blueprint, render_template, redirect, url_for, session, Response
+from flask import Blueprint, render_template, redirect, url_for, session, Response, flash
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required as flask_login_required
 
-from ..forms import LoginForm, RegistrationForm
+from ..forms import LoginForm, RegistrationForm, StaffRegistrationForm
 from ..services.auth_service import AuthService
 from ..models import db, User
 from ..utils import role_required, setup_logger
@@ -28,13 +28,14 @@ def load_user(user_id: str) -> User | None:
 def login() -> Response:
     form = LoginForm()
     if form.validate_on_submit():
-        user = AuthService.authenticate(form.username.data, form.password.data)
+        user = AuthService.authenticate(form.email.data, form.password.data)
         if user:
-            login_user(user, remember=form.remember.data, duration=None)
+            login_user(user, remember=form.remember.data)
             session['user_id'] = user.id
             session['role'] = user.role
             return redirect(url_for('rooms.list_rooms'))
-        logger.info('Failed login for %s', form.username.data)
+        logger.info('Failed login for %s', form.email.data)
+        flash('Invalid credentials or inactive account')
     return render_template('login.html', form=form)
 
 
@@ -52,6 +53,27 @@ def logout() -> Response:
 def register() -> Response:
     form = RegistrationForm()
     if form.validate_on_submit():
-        AuthService.create_user(form.username.data, form.password.data, form.role.data)
+        AuthService.create_user(
+            form.username.data,
+            form.password.data,
+            form.role.data,
+            email=form.email.data,
+        )
         return redirect(url_for('auth.login'))
     return render_template('register.html', form=form)
+
+
+@bp.route('/staff-register', methods=['GET', 'POST'])
+def staff_register() -> Response:
+    form = StaffRegistrationForm()
+    if form.validate_on_submit():
+        AuthService.create_user(
+            form.username.data,
+            form.password.data,
+            form.role.data,
+            email=form.email.data,
+            active=False,
+        )
+        flash('Account pending manager approval')
+        return redirect(url_for('auth.login'))
+    return render_template('staff_register.html', form=form)

@@ -14,15 +14,15 @@ def test_registration_and_login():
     client = app.test_client()
     with app.app_context():
         db.create_all()
-        admin = AuthService.create_user('admin', 'pass', 'admin')
+        admin = AuthService.create_user('admin', 'pass', 'admin', email='admin@example.com')
     # login as admin
-    resp = client.post('/auth/login', data={'username': 'admin', 'password': 'pass'}, follow_redirects=True)
+    resp = client.post('/auth/login', data={'email': 'admin@example.com', 'password': 'pass'}, follow_redirects=True)
     assert resp.status_code == 200
     # register new user
-    resp = client.post('/auth/register', data={'username': 'u1', 'password': 'pw', 'role': 'manager'}, follow_redirects=True)
+    resp = client.post('/auth/register', data={'username': 'u1', 'email': 'u1@example.com', 'password': 'pw', 'role': 'manager'}, follow_redirects=True)
     assert resp.status_code == 200
     with app.app_context():
-        user = AuthService.authenticate('u1', 'pw')
+        user = AuthService.authenticate('u1@example.com', 'pw')
         assert user is not None
         assert bcrypt.checkpw('pw'.encode(), user.password_hash.encode())
 

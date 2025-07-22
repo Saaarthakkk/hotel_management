@@ -3,10 +3,11 @@
 {% include '_flash.html' %}
 <form method="post">
     {{ form.hidden_tag() }}
-    {{ form.username.label }} {{ form.username() }}<br>
+    {{ form.email.label }} {{ form.email() }}<br>
     {{ form.password.label }} {{ form.password() }}<br>
     {{ form.remember.label }} {{ form.remember() }}<br>
     <input type="submit" value="Login">
 </form>
-<a href="{{ url_for('auth.register') }}">Register</a>
+<a href="{{ url_for('auth.register') }}">Admin Register</a> |
+<a href="{{ url_for('auth.staff_register') }}">Staff Registration</a>
 {% endblock %}

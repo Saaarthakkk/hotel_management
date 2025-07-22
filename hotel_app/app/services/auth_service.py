@@ -9,8 +9,16 @@ class AuthService:
     """Service for CRUD operations on users."""
 
     @staticmethod
-    def create_user(username: str, password: str, role: str) -> User:
-        user = User(username=username, role=role)
+    def create_user(
+        username: str,
+        password: str,
+        role: str,
+        email: str | None = None,
+        active: bool = True,
+    ) -> User:
+        if email is None:
+            email = f"{username}@example.com"
+        user = User(username=username, email=email, role=role, active=active)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -29,8 +37,10 @@ class AuthService:
             db.session.commit()
 
     @staticmethod
-    def authenticate(username: str, password: str) -> Optional[User]:
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
+    def authenticate(identifier: str, password: str) -> Optional[User]:
+        user = User.query.filter(
+            (User.username == identifier) | (User.email == identifier)
+        ).first()
+        if user and user.active and user.check_password(password):
             return user
         return None

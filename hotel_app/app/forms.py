@@ -2,8 +2,14 @@
 from __future__ import annotations
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, DateField, PasswordField, BooleanField
-from wtforms.validators import DataRequired
+from wtforms import (
+    StringField,
+    DateField,
+    PasswordField,
+    BooleanField,
+    SelectField,
+)
+from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 
 class RoomForm(FlaskForm):
@@ -26,14 +32,31 @@ class RegistrationForm(FlaskForm):
     """Admin user registration form."""
 
     username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     role = StringField('Role', validators=[DataRequired()])
+
+
+class StaffRegistrationForm(FlaskForm):
+    """Form for staff applications."""
+
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Work Email', validators=[DataRequired(), Email()])
+    role = SelectField(
+        'Role', choices=[('receptionist', 'Receptionist'), ('housekeeping', 'Housekeeping')]
+    )
+    password = PasswordField(
+        'Password',
+        validators=[DataRequired(), Length(min=8)],
+    )
+    confirm = PasswordField('Confirm', validators=[DataRequired(), EqualTo('password')])
+    agree = BooleanField('I agree to the code of conduct', validators=[DataRequired()])
 
 
 class LoginForm(FlaskForm):
     """User login form."""
 
-    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember me')
 

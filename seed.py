@@ -10,8 +10,9 @@ def seed() -> None:
         roles = ['admin', 'manager', 'receptionist', 'housekeeping']
         for role in roles:
             username = f'{role}_demo'
-            if not AuthService.authenticate(username, 'pass123'):
-                AuthService.create_user(username, 'pass123', role)
+            email = f'{username}@example.com'
+            if not AuthService.authenticate(email, 'pass123'):
+                AuthService.create_user(username, 'pass123', role, email=email, active=True)
 
 
 if __name__ == '__main__':

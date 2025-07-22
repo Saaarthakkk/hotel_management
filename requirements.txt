@@ -8,3 +8,4 @@ pandas
 numpy
 weasyprint
 prophet
+email_validator
