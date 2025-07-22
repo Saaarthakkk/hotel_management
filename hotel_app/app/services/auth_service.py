@@ -37,6 +37,10 @@ class AuthService:
             db.session.commit()
 
     @staticmethod
+    def list_users() -> list[User]:
+        return User.query.all()
+
+    @staticmethod
     def authenticate(identifier: str, password: str) -> Optional[User]:
         user = User.query.filter(
             (User.username == identifier) | (User.email == identifier)

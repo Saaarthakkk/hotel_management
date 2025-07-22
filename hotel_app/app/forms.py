@@ -20,10 +20,10 @@ class RoomForm(FlaskForm):
 
 
 class BookingForm(FlaskForm):
-    """Simple booking creation form."""
+    """Booking creation form with dynamic room lookup."""
 
-    user_id = StringField('User ID', validators=[DataRequired()])
-    room_id = StringField('Room ID', validators=[DataRequired()])
+    user_id = SelectField('Guest', coerce=int, validators=[DataRequired()])
+    room_id = SelectField('Room', coerce=int, validators=[DataRequired()])
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
 

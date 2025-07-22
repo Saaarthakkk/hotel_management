@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Calendar View</h1>
+<table border="1">
+<tr><th>Date</th><th>Room</th><th>Guest</th></tr>
+{% for b in bookings %}
+<tr>
+  <td>{{ b.start_date }} - {{ b.end_date }}</td>
+  <td>{{ b.room.number }}</td>
+  <td>{{ b.user.username }}</td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

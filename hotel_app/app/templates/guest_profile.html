@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ user.username }}'s Profile</h1>
+<ul>
+<li>Email: {{ user.email }}</li>
+<li>Role: {{ user.role }}</li>
+</ul>
+<h2>Bookings</h2>
+<table border="1">
+<tr><th>Room</th><th>Start</th><th>End</th></tr>
+{% for b in bookings %}
+<tr><td>{{ b.room.number }}</td><td>{{ b.start_date }}</td><td>{{ b.end_date }}</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

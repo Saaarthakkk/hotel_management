@@ -4,11 +4,14 @@ from __future__ import annotations
 import logging
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from datetime import date
 
 from ..services.booking_service import BookingService
+from ..services.room_service import RoomService
+from ..services.auth_service import AuthService
 from ..utils import login_required, role_required, setup_logger
 from ..forms import BookingForm, EditBookingForm, SearchBookingForm
-from ..models import db, Booking
+from ..models import db, Booking, User
 
 bp = Blueprint('bookings', __name__, url_prefix='/bookings')
 logger = setup_logger(__name__, 'bookings.log')
@@ -33,12 +36,29 @@ def reservation_board() -> str:
     return render_template('board.html', bookings=bookings, search_form=form)
 
 
+@bp.route('/available')
+@login_required
+def available_rooms():
+    start = request.args.get('start')
+    end = request.args.get('end')
+    if not start or not end:
+        return jsonify([])
+    rooms = RoomService.available_rooms(date.fromisoformat(start), date.fromisoformat(end))
+    return jsonify([{'id': r.id, 'number': r.number} for r in rooms])
+
+
 @bp.route('/new', methods=['GET', 'POST'])
 @login_required
 @role_required('receptionist')
 def new_booking():
     """Create a booking."""
     form = BookingForm()
+    form.user_id.choices = [(u.id, u.username) for u in AuthService.list_users()]
+    if form.start_date.data and form.end_date.data:
+        avail = RoomService.available_rooms(form.start_date.data, form.end_date.data)
+    else:
+        avail = RoomService.list_rooms()
+    form.room_id.choices = [(r.id, r.number) for r in avail]
     if form.validate_on_submit():
         try:
             BookingService.create_booking(
@@ -64,6 +84,13 @@ def check_in(bid: int):
 @login_required
 def check_out(bid: int):
     BookingService.check_out(bid)
+    return redirect(url_for('bookings.reservation_board'))
+
+
+@bp.route('/cancel/<int:bid>', methods=['POST'])
+@login_required
+def cancel_booking(bid: int):
+    BookingService.cancel_booking(bid)
     return redirect(url_for('bookings.reservation_board'))
 
 
@@ -98,6 +125,21 @@ def delete_booking(id: int):
     """Delete a booking."""
     BookingService.delete_booking(id)
     return redirect(url_for('bookings.reservation_board'))
+
+
+@bp.route('/calendar')
+@login_required
+def calendar_view():
+    bookings = BookingService.list_bookings()
+    return render_template('calendar.html', bookings=bookings)
+
+
+@bp.route('/guest/<int:uid>')
+@login_required
+def guest_profile(uid: int):
+    user = db.session.get(User, uid)
+    bookings = Booking.query.filter_by(user_id=uid).all()
+    return render_template('guest_profile.html', user=user, bookings=bookings)
 
 
 @bp.route('/search', methods=['GET', 'POST'])

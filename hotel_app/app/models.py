@@ -46,6 +46,7 @@ class Booking(db.Model):
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), default='reserved', nullable=False)
+    cancelled_at = db.Column(db.DateTime)
     user = db.relationship('User', backref='bookings')
     room = db.relationship('Room', backref='bookings')
 
@@ -129,3 +130,14 @@ class OverbookingPlan(db.Model):
     date = db.Column(db.Date, unique=True, nullable=False)
     limit = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class BookingAudit(db.Model):
+    """Record of booking actions for audit trail."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
+    action = db.Column(db.String(50))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    details = db.Column(db.String(200))
+    booking = db.relationship('Booking', backref='audits')
