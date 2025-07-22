@@ -69,6 +69,8 @@ class HousekeepingTask(db.Model):
     due_date = db.Column(db.Date)
     status = db.Column(db.String(20), default='pending')
     completed_at = db.Column(db.DateTime)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
+    recurrence_days = db.Column(db.Integer)
     room = db.relationship('Room', backref='hk_tasks')
     assignee = db.relationship('User', backref='hk_tasks', foreign_keys=[assigned_to])
 
@@ -84,6 +86,7 @@ class RatePlan(db.Model):
 class CleaningLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task_id = db.Column(db.Integer, db.ForeignKey('housekeeping_task.id'))
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     duration = db.Column(db.Integer)
     task = db.relationship('HousekeepingTask', backref='logs')

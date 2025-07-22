@@ -28,6 +28,20 @@ def init_cli(app) -> None:
         logger.info('schedule %s', schedule)
         click.echo(schedule)
 
+    @app.cli.command('hk_recurring')
+    @click.option('--room', required=True, type=int)
+    @click.option('--start', required=True)
+    @click.option('--end', required=True)
+    @click.option('--interval', required=True, type=int)
+    def recurring(room: int, start: str, end: str, interval: int) -> None:
+        """Create recurring housekeeping tasks."""
+        start_d = date.fromisoformat(start)
+        end_d = date.fromisoformat(end)
+        tasks = HousekeepingService.schedule_recurring_task(
+            room, start_d, end_d, interval
+        )
+        click.echo({t.id for t in tasks})
+
     @app.cli.group()
     def revenue() -> None:
         """Revenue related commands."""

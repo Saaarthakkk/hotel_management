@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import date, datetime
 
 from ..models import Booking, BookingAudit, User, db
+from .housekeeping_service import HousekeepingService
 
 
 class BookingService:
@@ -49,6 +50,11 @@ class BookingService:
             booking.cancelled_at = datetime.utcnow()
             if booking.room:
                 booking.room.status = 'vacant'
+                HousekeepingService.schedule_task(
+                    booking.room.id,
+                    booking.end_date,
+                    booking_id=booking.id,
+                )
             db.session.commit()
             BookingService._record_audit(booking.id, 'check_out')
 
